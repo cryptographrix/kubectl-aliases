@@ -28,52 +28,52 @@ except NameError:
 
 def main():
     # (alias, full, allow_when_oneof, incompatible_with)
-    cmds = [('k', 'kubectl', None, None)]
+    cmds = [('k8s.', 'kubectl', None, None)]
 
-    globs = [('sys', '--namespace=kube-system', None, ['sys'])]
+    globs = [('sys.', '--namespace=kube-system', None, ['sys.'])]
 
     ops = [
-        ('a', 'apply --recursive -f', None, None),
-        ('ex', 'exec -i -t', None, None),
-        ('lo', 'logs -f', None, None),
-        ('lop', 'logs -f -p', None, None),
-        ('p', 'proxy', None, ['sys']),
-        ('g', 'get', None, None),
-        ('d', 'describe', None, None),
-        ('rm', 'delete', None, None),
-        ('run', 'run --rm --restart=Never --image-pull-policy=IfNotPresent -i -t', None, None),
+        ('apply.', 'apply --recursive -f', None, None),
+        ('exec.', 'exec -i -t', None, None),
+        ('logs.', 'logs -f', None, None),
+        ('logs.previous.', 'logs -f -p', None, None),
+        ('proxy.', 'proxy', None, ['sys.']),
+        ('get.', 'get', None, None),
+        ('desc.', 'describe', None, None),
+        ('rm.', 'delete', None, None),
+        ('run.', 'run --rm --restart=Never --image-pull-policy=IfNotPresent -i -t', None, None),
         ]
 
     res = [
-        ('po', 'pods', ['g', 'd', 'rm'], None),
-        ('dep', 'deployment', ['g', 'd', 'rm'], None),
-        ('svc', 'service', ['g', 'd', 'rm'], None),
-        ('ing', 'ingress', ['g', 'd', 'rm'], None),
-        ('cm', 'configmap', ['g', 'd', 'rm'], None),
-        ('sec', 'secret', ['g', 'd', 'rm'], None),
-        ('no', 'nodes', ['g', 'd'], ['sys']),
-        ('ns', 'namespaces', ['g', 'd', 'rm'], ['sys']),
+        ('pods.', 'pods', ['get.', 'desc.', 'rm.'], None),
+        ('deployment.', 'deployment', ['get.', 'desc.', 'rm.'], None),
+        ('svc.', 'service', ['get.', 'desc.', 'rm.'], None),
+        ('ingress.', 'ingress', ['get.', 'desc.', 'rm.'], None),
+        ('confmap.', 'configmap', ['get.', 'desc.', 'rm.'], None),
+        ('secret.', 'secret', ['get.', 'desc.', 'rm.'], None),
+        ('nodes.', 'nodes', ['get.', 'desc.'], ['sys']),
+        ('ns.', 'namespaces', ['get.', 'desc.', 'rm.'], ['sys.']),
         ]
     res_types = [r[0] for r in res]
 
     args = [
-        ('oyaml', '-o=yaml', ['g'], ['owide', 'ojson', 'sl']),
-        ('owide', '-o=wide', ['g'], ['oyaml', 'ojson']),
-        ('ojson', '-o=json', ['g'], ['owide', 'oyaml', 'sl']),
-        ('all', '--all-namespaces', ['g', 'd'], ['rm', 'f', 'no', 'sys'
+        ('yaml.', '-o=yaml', ['get.'], ['wide.', 'json.', 'showlabels.']),
+        ('wide.', '-o=wide', ['get.'], ['yaml.', 'json.']),
+        ('json.', '-o=json', ['get.'], ['wide.', 'yaml.', 'showlabels.']),
+        ('all.', '--all-namespaces', ['get.', 'desc.'], ['rm.', 'file.', 'nodes.', 'sys.'
          ]),
-        ('sl', '--show-labels', ['g'], ['oyaml', 'ojson']
-         + diff(res_types, ['po', 'dep'])),
-        ('all', '--all', ['rm'], None), # caution: reusing the alias
-        ('w', '--watch', ['g'], ['oyaml', 'ojson', 'owide']),
+        ('showlabels.', '--show-labels', ['get.'], ['yaml.', 'json.']
+         + diff(res_types, ['pods.', 'dep'])),
+        ('all.', '--all', ['rm.'], None), # caution: reusing the alias
+        ('watch.', '--watch', ['get.'], ['yaml.', 'json.', 'wide.']),
         ]
 
     # these accept a value, so they need to be at the end and
     # mutually exclusive within each other.
-    positional_args = [('f', '--recursive -f', ['g', 'd', 'rm'], res_types + ['all'
-                       , 'l', 'sys']), ('l', '-l', ['g', 'd', 'rm'], ['f',
-                       'all']), ('n', '--namespace', ['g', 'd', 'rm',
-                       'lo', 'ex'], ['ns', 'no', 'sys', 'all'])]
+    positional_args = [
+       ('file.', '--recursive -f', ['get.', 'desc.', 'rm.'], res_types + ['all.', 'label.', 'sys.']),
+       ('label.', '-l', ['get.', 'desc.', 'rm.'], ['file.','all.']), 
+       ('namespace.', '--namespace', ['get.', 'desc.', 'rm.','logs.', 'exec.'], ['ns.', 'nodes.', 'sys.', 'all.'])]
 
     # [(part, optional, take_exactly_one)]
     parts = [
@@ -96,7 +96,7 @@ def main():
         with open(header_path, 'r') as f:
             print(f.read())
     for cmd in out:
-        print("alias {}='{}'".format(''.join([a[0] for a in cmd]),
+        print("alias {}='{}'".format(''.join([a[0] for a in cmd]).strip('.'),
               ' '.join([a[1] for a in cmd])))
 
 
